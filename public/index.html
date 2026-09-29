@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f7f5" />
+    <title>Bot Atelier — Master Creator</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --canvas: #f7f7f5;
+        --surface: rgba(255, 255, 255, 0.88);
+        --surface-strong: #ffffff;
+        --text: #20201f;
+        --muted: #74716d;
+        --line: #e4e2de;
+        --accent: #2783de;
+        --accent-soft: #e5f2fc;
+        --green: #2d8b5a;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 14px 40px rgba(0, 0, 0, 0.06);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 10% 0%, rgba(39, 131, 222, 0.12), transparent 28rem),
+          radial-gradient(circle at 90% 20%, rgba(114, 188, 143, 0.10), transparent 24rem),
+          var(--canvas);
+        font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button, textarea { font: inherit; }
+      button { cursor: pointer; }
+      .shell { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+      header {
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; }
+      .mark {
+        width: 36px; height: 36px; border-radius: 10px;
+        display: grid; place-items: center; color: white;
+        background: linear-gradient(145deg, #1d70c2, #4a9deb);
+        box-shadow: 0 8px 20px rgba(39, 131, 222, 0.24);
+      }
+      .status { color: var(--green); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+      .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #46a171; }
+
+      main { padding: 32px 0 64px; }
+      .hero { max-width: 760px; margin-bottom: 32px; }
+      .eyebrow { color: var(--accent); font-weight: 650; font-size: 14px; letter-spacing: .02em; }
+      h1 { font-size: clamp(36px, 6vw, 68px); line-height: 1.02; letter-spacing: -.055em; margin: 12px 0 18px; }
+      .hero p { color: var(--muted); font-size: 19px; max-width: 650px; margin: 0; }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
+        gap: 20px;
+        align-items: start;
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid rgba(228, 226, 222, .9);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+      }
+      .panel-head {
+        min-height: 62px; padding: 14px 18px;
+        display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+      }
+      .panel-head strong { font-size: 15px; }
+      .panel-head span { color: var(--muted); font-size: 13px; }
+
+      .chat { min-height: 400px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+      .message {
+        max-width: 88%; padding: 13px 15px; border-radius: 14px;
+        border: 1px solid var(--line); background: var(--surface-strong);
+      }
+      .message.bot { border-top-left-radius: 5px; }
+      .message.user {
+        align-self: flex-end; border: 0; border-top-right-radius: 5px;
+        color: #0a426f; background: var(--accent-soft);
+      }
+      .message small { display: block; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+      .composer { padding: 16px; border-top: 1px solid var(--line); background: rgba(249,248,247,.8); }
+      textarea {
+        width: 100%; min-height: 104px; resize: vertical; padding: 14px 15px;
+        border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--text);
+        outline: none;
+      }
+      textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(39,131,222,.12); }
+      .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+      .hint { color: var(--muted); font-size: 13px; }
+      .primary {
+        min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px;
+        color: white; background: var(--accent); font-weight: 650;
+        box-shadow: 0 8px 18px rgba(39,131,222,.22);
+      }
+      .primary:hover { filter: brightness(.96); }
+      .primary:disabled { opacity: .55; cursor: wait; }
+      .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+      .chip {
+        min-height: 36px; padding: 0 12px; border: 1px solid var(--line);
+        border-radius: 9px; background: rgba(255,255,255,.72); color: var(--muted);
+      }
+      .chip:hover { color: var(--text); border-color: #cac7c1; }
+
+      .preview { padding: 18px; min-height: 586px; }
+      .empty { min-height: 520px; display: grid; place-items: center; text-align: center; color: var(--muted); }
+      .empty-icon {
+        width: 58px; height: 58px; margin: 0 auto 14px; border-radius: 16px;
+        display: grid; place-items: center; font-size: 24px;
+        color: var(--accent); background: var(--accent-soft);
+      }
+      .project-top { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+      .project-top h2 { margin: 0 0 4px; font-size: 24px; letter-spacing: -.025em; }
+      .project-top p { margin: 0; color: var(--muted); font-size: 14px; }
+      .badge { padding: 5px 8px; color: #236b49; background: #e8f1ec; border-radius: 7px; font-size: 12px; font-weight: 700; }
+      .section-title { margin: 24px 0 10px; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+      .artifact-grid { display: grid; gap: 9px; }
+      .artifact {
+        display: flex; align-items: center; gap: 12px; padding: 12px;
+        border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.7);
+      }
+      .artifact-icon { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: #f0efed; }
+      .artifact strong { display: block; font-size: 14px; }
+      .artifact span { color: var(--muted); font-size: 12px; }
+      .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+      .tag { padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px; font-size: 12px; background: #fff; }
+      .directions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .direction { min-height: 92px; padding: 11px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+      .swatch { width: 100%; height: 24px; border-radius: 6px; margin-bottom: 9px; }
+      .direction:nth-child(1) .swatch { background: linear-gradient(90deg,#e7f2f8,#f5f2eb); }
+      .direction:nth-child(2) .swatch { background: linear-gradient(90deg,#242321,#b58a6b); }
+      .direction:nth-child(3) .swatch { background: linear-gradient(90deg,#6754e8,#ff8b73); }
+      .direction strong { font-size: 12px; }
+
+      @media (max-width: 860px) {
+        .shell { width: min(100% - 32px, 680px); }
+        header { height: 64px; }
+        main { padding-top: 20px; }
+        .workspace { grid-template-columns: 1fr; }
+        .preview { min-height: auto; }
+        .empty { min-height: 320px; }
+      }
+      @media (max-width: 480px) {
+        .shell { width: calc(100% - 24px); }
+        h1 { font-size: 42px; }
+        .hero p { font-size: 17px; }
+        .panel { border-radius: 14px; }
+        .chat { min-height: 330px; padding: 16px; }
+        .message { max-width: 94%; }
+        .directions { grid-template-columns: 1fr; }
+        .actions { align-items: stretch; flex-direction: column; }
+        .primary { width: 100%; }
+        .hint { text-align: center; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .panel { animation: rise .45s ease both; }
+        .workspace .panel:nth-child(2) { animation-delay: .08s; }
+        @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark; --canvas:#191919; --surface:rgba(32,32,32,.9);
+          --surface-strong:#262625; --text:#fff; --muted:rgba(255,255,255,.65);
+          --line:rgba(255,255,255,.14); --accent:#5e9fe8; --accent-soft:rgba(94,159,232,.14);
+          --shadow:0 1px 2px rgba(0,0,0,.2),0 16px 42px rgba(0,0,0,.22);
+        }
+        textarea, .tag, .direction { background:#202020; }
+        .composer { background:rgba(25,25,25,.65); }
+        .artifact { background:rgba(255,255,255,.03); }
+        .artifact-icon { background:#383836; }
+        .message.user { color:#dceeff; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div class="brand"><div class="mark" aria-hidden="true">B</div>Bot Atelier</div>
+        <div class="status">Prototype online</div>
+      </header>
+      <main>
+        <section class="hero">
+          <div class="eyebrow">MASTER CREATOR BOT</div>
+          <h1>Опишите идею.<br />Получите систему.</h1>
+          <p>Бот проектирует связанные Telegram-боты, Mini Apps, сайты и сервисы — с единым дизайном, данными и управлением.</p>
+        </section>
+
+        <section class="workspace" aria-label="Рабочая область">
+          <div class="panel">
+            <div class="panel-head"><strong>Диалог</strong><span>Шаг 1 · идея</span></div>
+            <div class="chat" id="chat" aria-live="polite">
+              <div class="message bot">
+                <small>Bot Atelier</small>
+                Расскажите, что вы хотите создать. Можно описать аудиторию, функции и желаемый результат одним сообщением.
+              </div>
+            </div>
+            <div class="composer">
+              <label for="brief" class="hint">Описание проекта</label>
+              <textarea id="brief">Создай Telegram-бота, Mini App и лендинг для магазина авторских украшений. Нужны каталог, корзина, оплата, уведомления и админ-панель.</textarea>
+              <div class="chips" aria-label="Примеры">
+                <button class="chip" data-example="Создай AI-бота поддержки, базу знаний и сайт для SaaS-сервиса">AI-поддержка</button>
+                <button class="chip" data-example="Создай Telegram-бота и Mini App для бронирования услуг салона с расписанием и уведомлениями">Бронирование</button>
+                <button class="chip" data-example="Создай сайт-портфолио фотографа, лендинг рекламной кампании и Telegram-бота для заявок">Портфолио</button>
+              </div>
+              <div class="actions">
+                <span class="hint">Секреты и токены на этом этапе не нужны</span>
+                <button class="primary" id="create">Создать blueprint</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="panel">
+            <div class="panel-head"><strong>Project Blueprint</strong><span id="previewStatus">Ожидание</span></div>
+            <div class="preview" id="preview">
+              <div class="empty">
+                <div>
+                  <div class="empty-icon" aria-hidden="true">◇</div>
+                  <strong>Здесь появится архитектура проекта</strong>
+                  <p>Артефакты, функции, дизайн-направления и следующие решения.</p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const $ = (selector) => document.querySelector(selector);
+      const brief = $("#brief");
+      const create = $("#create");
+      const chat = $("#chat");
+      const preview = $("#preview");
+      const previewStatus = $("#previewStatus");
+
+      const icons = {
+        telegram_bot: "✦", mini_app: "▦", website: "◎", landing: "↗", admin_panel: "⌘"
+      };
+
+      document.querySelectorAll("[data-example]").forEach((button) => {
+        button.addEventListener("click", () => {
+          brief.value = button.dataset.example;
+          brief.focus();
+        });
+      });
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+        })[char]);
+      }
+
+      function renderBlueprint(data) {
+        previewStatus.textContent = "Черновик готов";
+        preview.innerHTML = `
+          <div class="project-top">
+            <div><h2>${escapeHtml(data.project.name)}</h2><p>Blueprint ${escapeHtml(data.schemaVersion)}</p></div>
+            <span class="badge">DRAFT</span>
+          </div>
+          <div class="section-title">Артефакты</div>
+          <div class="artifact-grid">
+            ${data.artifacts.map((item) => `
+              <div class="artifact">
+                <div class="artifact-icon" aria-hidden="true">${icons[item.type] || "◇"}</div>
+                <div><strong>${escapeHtml(item.title)}</strong><span>${item.capabilities.length} capabilities · planned</span></div>
+              </div>`).join("")}
+          </div>
+          <div class="section-title">Возможности</div>
+          <div class="tags">${data.capabilities.map((item) => `<span class="tag">${escapeHtml(item.title)}</span>`).join("")}</div>
+          <div class="section-title">Дизайн-направления</div>
+          <div class="directions">${data.designDirections.map((item) => `
+            <div class="direction"><div class="swatch"></div><strong>${escapeHtml(item.title)}</strong></div>`).join("")}
+          </div>
+          <div class="section-title">Следующий шаг</div>
+          <div class="artifact"><div class="artifact-icon" aria-hidden="true">→</div><div><strong>Уточнить главное действие</strong><span>${escapeHtml(data.nextQuestions[0])}</span></div></div>
+        `;
+      }
+
+      create.addEventListener("click", async () => {
+        const value = brief.value.trim();
+        if (!value) return brief.focus();
+        create.disabled = true;
+        create.textContent = "Проектирую…";
+        previewStatus.textContent = "Анализ идеи";
+        chat.insertAdjacentHTML("beforeend", `<div class="message user">${escapeHtml(value)}</div>`);
+        try {
+          const response = await fetch("/api/blueprints", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ brief: value })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error);
+          renderBlueprint(data);
+          chat.insertAdjacentHTML("beforeend", `<div class="message bot"><small>Bot Atelier</small>Я сформировал Project Blueprint: ${data.artifacts.length} артефакта и ${data.capabilities.length} функциональных модулей. Дальше уточним главное действие и дизайн.</div>`);
+        } catch (error) {
+          previewStatus.textContent = "Нужно уточнение";
+          chat.insertAdjacentHTML("beforeend", `<div class="message bot"><small>Bot Atelier</small>${escapeHtml(error.message)}</div>`);
+        } finally {
+          create.disabled = false;
+          create.textContent = "Создать blueprint";
+          chat.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+    </script>
+  </body>
+</html>
